@@ -1,0 +1,6 @@
+requests
+pycryptodome
+python-dotenv
+alembic
+sqlalchemy
+psycopg2-binary
