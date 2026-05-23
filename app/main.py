@@ -65,15 +65,11 @@ def ingest_historical_data():
 
 def sync_data():
     load_dotenv()
-    
-    # 1. Prepare Environment (Migrations + Historical Ingestion)
-    run_migrations()
-    ingest_historical_data()
+    threshold = int(os.getenv("SOLAX_RECORD_THRESHOLD", "170"))
     
     # Check if we should skip the API call loop (Default to TRUE for safety)
     if os.getenv("SKIP_API_SYNC", "true").lower() == "true":
         print("\nSKIP_API_SYNC is enabled (default). Skipping SolaX Cloud API calls.")
-        print("--- Execution Complete ---")
         return
     
     username = os.getenv("SOLAX_USERNAME")
@@ -87,7 +83,6 @@ def sync_data():
         return
 
     client = SolaXClient(username, password)
-    db = SessionLocal()
     
     # Calculate date range
     start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
@@ -113,13 +108,15 @@ def sync_data():
             
             should_fetch = False
             
-            if date_str == today_str:
+            if not os.path.exists(filepath):
                 should_fetch = True
-                print(f"  [{sn}] Today is volatile, fetching latest data...")
-            elif not os.path.exists(filepath):
-                should_fetch = True
-                print(f"  [{sn}] New date detected, fetching data...")
+                print(f"  [{sn}] {date_str}: New date detected, fetching data...")
+            elif date_str == start_date_str:
+                # Exception for start date: if file exists, don't re-fetch even if records are low
+                print(f"  [{sn}] {date_str}: Start date file exists, skipping.")
+                should_fetch = False
             else:
+                # Check existing file for completeness
                 try:
                     with open(filepath, "r") as f:
                         data = json.load(f)
@@ -127,12 +124,12 @@ def sync_data():
                         total = result.get("total", 0)
                         is_empty = result.get("empty", True)
                         
-                        if is_empty or total < 180:
+                        if is_empty or total < threshold:
                             should_fetch = True
                             reason = "empty" if is_empty else f"incomplete ({total} records)"
-                            print(f"  [{sn}] Local data is {reason}, re-fetching...")
+                            print(f"  [{sn}] {date_str}: Local data is {reason}, re-fetching...")
                         else:
-                            print(f"  [{sn}] Skipping (data is complete with {total} records)")
+                            print(f"  [{sn}] {date_str}: Skipping (data is complete with {total} records)")
                 except Exception as e:
                     print(f"  [{sn}] Error reading local file, re-fetching: {e}")
                     should_fetch = True
@@ -143,14 +140,7 @@ def sync_data():
                     # Save to JSON
                     with open(filepath, "w") as f:
                         json.dump(report, f, indent=2)
-                    
-                    # Sync to DB
-                    records = report.get("result", {}).get("records", [])
-                    if records:
-                        upsert_inverter_records(db, sn, records)
-                        print(f"  [{sn}] Saved to JSON and DB ({len(records)} records)")
-                    else:
-                        print(f"  [{sn}] Saved to JSON (no records found)")
+                    print(f"  [{sn}] Saved to JSON")
                 else:
                     print(f"  [{sn}] Failed to fetch data")
                 
@@ -161,8 +151,9 @@ def sync_data():
         
         current_date += timedelta(days=1)
 
-    db.close()
-    print(f"\n--- Sync Complete ---")
+    print(f"\n--- API Sync Complete ---")
 
 if __name__ == "__main__":
     sync_data()
+    run_migrations()
+    ingest_historical_data()

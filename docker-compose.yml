@@ -31,11 +31,14 @@ services:
   grafana:
     image: grafana/grafana:10.1.0
     container_name: solax_grafana
+    env_file:
+      - .env
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     ports:
       - "3001:3000"
     volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
     depends_on:
       - db
