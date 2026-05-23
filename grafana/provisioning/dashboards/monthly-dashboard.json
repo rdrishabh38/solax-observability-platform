@@ -1,0 +1,115 @@
+{
+  "editable": true,
+  "panels": [
+    {
+      "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
+      "fieldConfig": { 
+        "defaults": { 
+          "unit": "kwh",
+          "decimals": 2
+        } 
+      },
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT SUM(max_daily) as value FROM (SELECT date_trunc('day', update_time) as t, inverter_sn, MAX(daily_inverter_output_kwh) as max_daily FROM inverter_data WHERE $__timeFilter(update_time) GROUP BY 1, 2) as sub;"
+        }
+      ],
+      "title": "Total Yield for Period",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "lineWidth": 1,
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "unit": "kwh",
+          "decimals": 2
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Cumulative Yield" },
+            "properties": [
+              { "id": "custom.drawStyle", "value": "line" },
+              { "id": "custom.stacking", "value": { "group": "B", "mode": "none" } },
+              { "id": "custom.lineWidth", "value": 2 },
+              { "id": "custom.axisPlacement", "value": "right" },
+              { "id": "custom.fillOpacity", "value": 0 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 4 },
+      "id": 2,
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawId": "A",
+          "rawQuery": true,
+          "rawSql": "SELECT date_trunc('day', update_time) as \"time\", MAX(daily_inverter_output_kwh) as \"Daily Yield\", inverter_sn FROM inverter_data WHERE $__timeFilter(update_time) GROUP BY 1, 3 ORDER BY 1"
+        },
+        {
+          "format": "time_series",
+          "rawId": "B",
+          "rawQuery": true,
+          "rawSql": "SELECT day as time, SUM(daily_sum) OVER (ORDER BY day) as \"Cumulative Yield\" FROM (SELECT t as day, SUM(max_daily) as daily_sum FROM (SELECT date_trunc('day', update_time) as t, inverter_sn, MAX(daily_inverter_output_kwh) as max_daily FROM inverter_data WHERE $__timeFilter(update_time) GROUP BY 1, 2) as sub GROUP BY 1) as running ORDER BY 1;"
+        }
+      ],
+      "title": "Daily Production & Cumulative Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "pointSize": 5,
+            "showPoints": "always"
+          },
+          "unit": "kwh",
+          "decimals": 2
+        }
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
+      "id": 3,
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "format": "time_series",
+          "rawId": "A",
+          "rawQuery": true,
+          "rawSql": "SELECT date_trunc('day', update_time) as \"time\", MAX(daily_inverter_output_kwh) as \"Daily Yield\", inverter_sn FROM inverter_data WHERE $__timeFilter(update_time) GROUP BY 1, 3 ORDER BY 1"
+        },
+        {
+          "format": "time_series",
+          "rawId": "B",
+          "rawQuery": true,
+          "rawSql": "SELECT t as time, SUM(max_daily) as \"Total Plant Yield\" FROM (SELECT date_trunc('day', update_time) as t, inverter_sn, MAX(daily_inverter_output_kwh) as max_daily FROM inverter_data WHERE $__timeFilter(update_time) GROUP BY 1, 2) as sub GROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "title": "Daily Yield: Individual vs Total Plant",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "1h",
+  "schemaVersion": 38,
+  "time": { "from": "now-30d", "to": "now" },
+  "timezone": "utc",
+  "title": "SolaX - Monthly Overview",
+  "uid": "solax-monthly"
+}
