@@ -3,7 +3,19 @@
   "panels": [
     {
       "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
-      "fieldConfig": { "defaults": { "unit": "kwh", "decimals": 2 } },
+      "fieldConfig": { 
+        "defaults": { 
+          "unit": "kwh", 
+          "decimals": 2,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        } 
+      },
       "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "targets": [
@@ -18,150 +30,268 @@
     },
     {
       "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 6 },
+      "fieldConfig": { 
+          "defaults": { 
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 4000 },
+                  { "color": "red", "value": 6000 }
+                ]
+              }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "Peak Power" },
+              "properties": [
+                { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient", "valueDisplay": "color" } },
+                { "id": "min", "value": 0 },
+                { "id": "max", "value": 7000 },
+                { "id": "unit", "value": "watt" },
+                { "id": "decimals", "value": 2 }
+              ]
+            }
+          ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 6 },
       "id": 2,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
-        "textMode": "value"
-      },
       "targets": [
         {
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT now() as time, ROUND(total_ac::numeric, 2) || ' W @ ' || to_char(time, 'YYYY-MM-DD HH24:MI') as value FROM (SELECT update_time as time, SUM(ac_power_watts) as total_ac FROM inverter_data GROUP BY update_time) as daily_peaks ORDER BY total_ac DESC LIMIT 1"
+          "rawSql": "SELECT (SUM(ac_power_watts))::numeric as \"Peak Power\", to_char(update_time, 'YYYY-MM-DD HH24:MI') as \"Timestamp\" FROM inverter_data GROUP BY update_time ORDER BY 1 DESC, update_time DESC LIMIT 10"
         }
       ],
-      "title": "All-Time Peak Power (Whole Plant)",
-      "type": "stat"
+      "title": "Top 10 Peak Power - Whole Plant",
+      "type": "table"
     },
     {
       "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 12 },
+      "fieldConfig": { 
+          "defaults": { 
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "blue", "value": null }
+                ]
+              }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "AC Power" },
+              "properties": [
+                { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient", "valueDisplay": "color" } },
+                { "id": "min", "value": 0 },
+                { "id": "max", "value": 3500 },
+                { "id": "unit", "value": "watt" },
+                { "id": "decimals", "value": 2 }
+              ]
+            }
+          ]
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 16 },
       "id": 3,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
-        "textMode": "value"
-      },
       "targets": [
         {
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT now() as time, ROUND(ac_power_watts::numeric, 2) || ' W @ ' || to_char(update_time, 'YYYY-MM-DD HH24:MI') as value FROM inverter_data WHERE inverter_sn = 'XM4030L7188423' ORDER BY ac_power_watts DESC LIMIT 1"
+          "rawSql": "SELECT ac_power_watts::numeric as \"AC Power\", to_char(update_time, 'YYYY-MM-DD HH24:MI') as \"Timestamp\" FROM inverter_data WHERE inverter_sn = 'XM4030L7188423' ORDER BY 1 DESC, update_time DESC LIMIT 10"
         }
       ],
-      "title": "Max AC Output - Inverter A (XM4030L7188423)",
-      "type": "stat"
+      "title": "Top 10 AC Output - Inverter A",
+      "type": "table"
     },
     {
       "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 12 },
+      "fieldConfig": { 
+          "defaults": { 
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "blue", "value": null }
+                ]
+              }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "AC Power" },
+              "properties": [
+                { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient", "valueDisplay": "color" } },
+                { "id": "min", "value": 0 },
+                { "id": "max", "value": 3500 },
+                { "id": "unit", "value": "watt" },
+                { "id": "decimals", "value": 2 }
+              ]
+            }
+          ]
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 16 },
       "id": 4,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
-        "textMode": "value"
-      },
       "targets": [
         {
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT now() as time, ROUND(ac_power_watts::numeric, 2) || ' W @ ' || to_char(update_time, 'YYYY-MM-DD HH24:MI') as value FROM inverter_data WHERE inverter_sn = 'XM4030L7198015' ORDER BY ac_power_watts DESC LIMIT 1"
+          "rawSql": "SELECT ac_power_watts::numeric as \"AC Power\", to_char(update_time, 'YYYY-MM-DD HH24:MI') as \"Timestamp\" FROM inverter_data WHERE inverter_sn = 'XM4030L7198015' ORDER BY 1 DESC, update_time DESC LIMIT 10"
         }
       ],
-      "title": "Max AC Output - Inverter B (XM4030L7198015)",
-      "type": "stat"
+      "title": "Top 10 AC Output - Inverter B",
+      "type": "table"
     },
     {
       "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 18 },
+      "fieldConfig": { 
+          "defaults": { 
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "orange", "value": null }
+                ]
+              }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "DC Power" },
+              "properties": [
+                { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient", "valueDisplay": "color" } },
+                { "id": "min", "value": 0 },
+                { "id": "max", "value": 3800 },
+                { "id": "unit", "value": "watt" },
+                { "id": "decimals", "value": 2 }
+              ]
+            }
+          ]
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 26 },
       "id": 5,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
-        "textMode": "value"
-      },
       "targets": [
         {
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT now() as time, ROUND(mppt1_power_watts::numeric, 2) || ' W @ ' || to_char(update_time, 'YYYY-MM-DD HH24:MI') as value FROM inverter_data WHERE inverter_sn = 'XM4030L7188423' ORDER BY mppt1_power_watts DESC LIMIT 1"
+          "rawSql": "SELECT mppt1_power_watts::numeric as \"DC Power\", to_char(update_time, 'YYYY-MM-DD HH24:MI') as \"Timestamp\" FROM inverter_data WHERE inverter_sn = 'XM4030L7188423' ORDER BY 1 DESC, update_time DESC LIMIT 10"
         }
       ],
-      "title": "Max DC Input - Inverter A (XM4030L7188423)",
-      "type": "stat"
+      "title": "Top 10 DC Input - Inverter A",
+      "type": "table"
     },
     {
       "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 18 },
+      "fieldConfig": { 
+          "defaults": { 
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "orange", "value": null }
+                ]
+              }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "DC Power" },
+              "properties": [
+                { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient", "valueDisplay": "color" } },
+                { "id": "min", "value": 0 },
+                { "id": "max", "value": 3800 },
+                { "id": "unit", "value": "watt" },
+                { "id": "decimals", "value": 2 }
+              ]
+            }
+          ]
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 26 },
       "id": 6,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
-        "textMode": "value"
-      },
       "targets": [
         {
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT now() as time, ROUND(mppt1_power_watts::numeric, 2) || ' W @ ' || to_char(update_time, 'YYYY-MM-DD HH24:MI') as value FROM inverter_data WHERE inverter_sn = 'XM4030L7198015' ORDER BY mppt1_power_watts DESC LIMIT 1"
+          "rawSql": "SELECT mppt1_power_watts::numeric as \"DC Power\", to_char(update_time, 'YYYY-MM-DD HH24:MI') as \"Timestamp\" FROM inverter_data WHERE inverter_sn = 'XM4030L7198015' ORDER BY 1 DESC, update_time DESC LIMIT 10"
         }
       ],
-      "title": "Max DC Input - Inverter B (XM4030L7198015)",
-      "type": "stat"
+      "title": "Top 10 DC Input - Inverter B",
+      "type": "table"
     },
     {
       "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 24 },
+      "fieldConfig": { 
+          "defaults": { 
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 60 },
+                  { "color": "red", "value": 80 }
+                ]
+              }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "Temp" },
+              "properties": [
+                { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient", "valueDisplay": "color" } },
+                { "id": "min", "value": 0 },
+                { "id": "max", "value": 100 },
+                { "id": "unit", "value": "celsius" },
+                { "id": "decimals", "value": 1 }
+              ]
+            }
+          ]
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 36 },
       "id": 7,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
-        "textMode": "value"
-      },
       "targets": [
         {
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT now() as time, ROUND(inverter_temperature_celsius::numeric, 1) || ' °C @ ' || to_char(update_time, 'YYYY-MM-DD HH24:MI') as value FROM inverter_data WHERE inverter_sn = 'XM4030L7188423' ORDER BY inverter_temperature_celsius DESC LIMIT 1"
+          "rawSql": "SELECT inverter_temperature_celsius::numeric as \"Temp\", to_char(update_time, 'YYYY-MM-DD HH24:MI') as \"Timestamp\" FROM inverter_data WHERE inverter_sn = 'XM4030L7188423' ORDER BY 1 DESC, update_time DESC LIMIT 10"
         }
       ],
-      "title": "Max Temp - Inverter A (XM4030L7188423)",
-      "type": "stat"
+      "title": "Top 10 Max Temp - Inverter A",
+      "type": "table"
     },
     {
       "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 24 },
-      "id": 8,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^value$/", "values": false },
-        "textMode": "value"
+      "fieldConfig": { 
+          "defaults": { 
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 60 },
+                  { "color": "red", "value": 80 }
+                ]
+              }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "Temp" },
+              "properties": [
+                { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient", "valueDisplay": "color" } },
+                { "id": "min", "value": 0 },
+                { "id": "max", "value": 100 },
+                { "id": "unit", "value": "celsius" },
+                { "id": "decimals", "value": 1 }
+              ]
+            }
+          ]
       },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 36 },
+      "id": 8,
       "targets": [
         {
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT now() as time, ROUND(inverter_temperature_celsius::numeric, 1) || ' °C @ ' || to_char(update_time, 'YYYY-MM-DD HH24:MI') as value FROM inverter_data WHERE inverter_sn = 'XM4030L7198015' ORDER BY inverter_temperature_celsius DESC LIMIT 1"
+          "rawSql": "SELECT inverter_temperature_celsius::numeric as \"Temp\", to_char(update_time, 'YYYY-MM-DD HH24:MI') as \"Timestamp\" FROM inverter_data WHERE inverter_sn = 'XM4030L7198015' ORDER BY 1 DESC, update_time DESC LIMIT 10"
         }
       ],
-      "title": "Max Temp - Inverter B (XM4030L7198015)",
-      "type": "stat"
+      "title": "Top 10 Max Temp - Inverter B",
+      "type": "table"
     }
   ],
   "refresh": "1d",
