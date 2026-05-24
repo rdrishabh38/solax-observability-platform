@@ -41,7 +41,21 @@
     },
     {
       "datasource": { "type": "postgres", "uid": "solax-postgres-db" },
-      "fieldConfig": { "defaults": { "unit": "kwh", "decimals": 2 } },
+      "fieldConfig": { 
+        "defaults": { 
+          "unit": "kwh", 
+          "decimals": 2,
+          "min": 0,
+          "max": 50,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        } 
+      },
       "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
       "id": 4,
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },

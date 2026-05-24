@@ -57,6 +57,24 @@ The system will:
 3. Ingest all local JSON files from `data/` into the database.
 4. Launch Grafana at [http://localhost:3001](http://localhost:3001) (default login: `admin` / `admin`).
 
+![Just Up Demo](readme_assets/just_up.gif)
+
+
+## Dashboards Overview
+
+### 1. Daily Performance
+High-resolution tracking of real-time power, inverter efficiency, and thermal health.
+![Daily Dashboard](readme_assets/login_to_grafana_and_daily_dashboard.gif)
+
+### 2. Monthly Overview
+Aggregated daily production comparison and cumulative generation trends.
+![Monthly Dashboard](readme_assets/grafana_monthly_dashboard.gif)
+
+### 3. Lifetime Statistics
+Overall plant health, total energy produced since inception, and all-time peak performance records.
+![Lifetime Stats](readme_assets/grafana_lifetime_stats_dashboard.gif)
+
+
 ## Common Commands (Justfile)
 
 | Recipe | Description | Command |
