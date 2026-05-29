@@ -172,11 +172,14 @@
       "fieldConfig": { "defaults": { "unit": "percent", "decimals": 2 } },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
       "id": 8,
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
       "targets": [
         {
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT $__timeGroupAlias(update_time, $__interval), (SUM(ac_power_watts) / NULLIF(SUM(mppt1_power_watts), 0)) * 100 as \"Conversion Efficiency\" FROM inverter_data WHERE $__timeFilter(update_time) GROUP BY 1 ORDER BY 1"
+          "rawSql": "SELECT update_time as time, (ac_power_watts / NULLIF(mppt1_power_watts, 0)) * 100 as \"Efficiency\", inverter_sn FROM inverter_data WHERE $__timeFilter(update_time) ORDER BY 1"
         }
       ],
       "title": "Inverter Efficiency",
